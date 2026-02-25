@@ -147,15 +147,46 @@ public partial class MainWindow : Window
         var month = _selectedMonth.Month;
         var daysInMonth = DateTime.DaysInMonth(year, month);
 
+        var dayHeaders = new[] { "Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс" };
+        foreach (var dayHeader in dayHeaders)
+        {
+            CalendarGrid.Children.Add(new Border
+            {
+                Margin = new Thickness(4, 0, 4, 6),
+                Padding = new Thickness(6),
+                Background = new SolidColorBrush(Color.FromRgb(15, 23, 42)),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(51, 65, 85)),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(8),
+                Child = new TextBlock
+                {
+                    Text = dayHeader,
+                    FontWeight = FontWeights.SemiBold,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Foreground = new SolidColorBrush(Color.FromRgb(148, 163, 184))
+                }
+            });
+        }
+
+        var firstDay = new DateOnly(year, month, 1);
+        var leadingEmptyDays = ((int)firstDay.DayOfWeek + 6) % 7;
+        for (var i = 0; i < leadingEmptyDays; i++)
+        {
+            CalendarGrid.Children.Add(new Border { Margin = new Thickness(4), Opacity = 0.08 });
+        }
+
         for (var day = 1; day <= daysInMonth; day++)
         {
             var date = new DateOnly(year, month, day);
             var button = new Button
             {
                 Tag = date,
-                MinHeight = 88,
+                MinHeight = 108,
+                Margin = new Thickness(4),
                 HorizontalContentAlignment = HorizontalAlignment.Left,
                 VerticalContentAlignment = VerticalAlignment.Top,
+                FontSize = 15,
+                FontWeight = FontWeights.SemiBold
             };
 
             button.Click += OnDayClicked;
@@ -171,6 +202,9 @@ public partial class MainWindow : Window
         var hoursText = mark.WorkedHours is null ? string.Empty : $"\n{mark.WorkedHours:0.##} ч";
 
         button.Content = $"{date.Day}\n{GetStateTitle(mark)}{hoursText}{extraText}";
+        button.Foreground = Brushes.White;
+        button.BorderBrush = new SolidColorBrush(Color.FromRgb(51, 65, 85));
+        button.BorderThickness = new Thickness(1);
 
         button.Background = mark.State switch
         {
@@ -246,6 +280,7 @@ public partial class MainWindow : Window
                     mark.ExtraAmount = customDialog.ExtraAmount;
                     mark.WorkedHours = null;
                 }
+
                 break;
             case DayMarkState.CustomWorkedOrAbsent:
                 var hoursDialog = new HoursDialog(true, _globalShiftHours, mark.ExtraAmount) { Owner = this };
@@ -256,6 +291,7 @@ public partial class MainWindow : Window
                     mark.WorkedHours = hoursDialog.WorkedHours;
                     mark.ExtraAmount = hoursDialog.ExtraAmount;
                 }
+
                 break;
             case DayMarkState.CustomHours:
                 mark.State = DayMarkState.Empty;
@@ -274,27 +310,33 @@ public partial class MainWindow : Window
         try
         {
             var salaryTextBlock = SalaryTextBlock ?? FindName(nameof(SalaryTextBlock)) as TextBlock;
-            if (salaryTextBlock is null)
+            var salaryDetailsTextBlock = SalaryDetailsTextBlock ?? FindName(nameof(SalaryDetailsTextBlock)) as TextBlock;
+
+            if (salaryTextBlock is null || salaryDetailsTextBlock is null)
             {
-                ErrorLogger.LogMessage("MainWindow.RecalculateSalary", "SalaryTextBlock не найден в визуальном дереве.");
+                ErrorLogger.LogMessage("MainWindow.RecalculateSalary", "Не найдены элементы SalaryTextBlock/SalaryDetailsTextBlock.");
                 return;
             }
 
             var employee = SelectedEmployee;
             if (employee is null)
             {
-                salaryTextBlock.Text = "Выберите сотрудника для расчёта зарплаты.";
+                salaryTextBlock.Text = "Выберите сотрудника";
+                salaryDetailsTextBlock.Text = "Сумма появится здесь сразу после выбора сотрудника и отметок в календаре.";
                 return;
             }
 
-            decimal total = 0;
+            decimal baseAmount = 0;
+            decimal extrasAmount = 0;
             var daysWorked = 0;
+            decimal totalHours = 0;
 
             foreach (var mark in employee.Marks.Values.Where(v => v.Date.Year == _selectedMonth.Year && v.Date.Month == _selectedMonth.Month))
             {
+                extrasAmount += mark.ExtraAmount;
+
                 if (!mark.IsWorked)
                 {
-                    total += mark.ExtraAmount;
                     continue;
                 }
 
@@ -302,17 +344,21 @@ public partial class MainWindow : Window
                 if (employee.UseHourlyRate)
                 {
                     var hours = (decimal)(mark.WorkedHours ?? _globalShiftHours);
-                    total += employee.HourlyRate * hours;
+                    totalHours += hours;
+                    baseAmount += employee.HourlyRate * hours;
                 }
                 else
                 {
-                    total += employee.DailyRate;
+                    baseAmount += employee.DailyRate;
                 }
-
-                total += mark.ExtraAmount;
             }
 
-            salaryTextBlock.Text = $"{employee.Name}: смен {daysWorked}, итог за месяц: {total:0.##} ₽";
+            var total = baseAmount + extrasAmount;
+            salaryTextBlock.Text = $"{employee.Name}: {total:0.##} ₽";
+
+            salaryDetailsTextBlock.Text = employee.UseHourlyRate
+                ? $"Смен: {daysWorked}. Часов: {totalHours:0.##}. База (почасовая): {baseAmount:0.##} ₽. Доплаты: {extrasAmount:0.##} ₽."
+                : $"Смен: {daysWorked}. База (дневная): {baseAmount:0.##} ₽. Доплаты: {extrasAmount:0.##} ₽.";
         }
         catch (Exception ex)
         {
