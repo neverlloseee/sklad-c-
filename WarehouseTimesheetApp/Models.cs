@@ -20,11 +20,14 @@ public class DayMark
 
 public class Employee
 {
+    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string Warehouse { get; set; } = "Основной склад";
+    public string ShiftName { get; set; } = "Дневная";
     public decimal DailyRate { get; set; }
     public decimal HourlyRate { get; set; }
     public bool UseHourlyRate { get; set; }
     public Dictionary<DateOnly, DayMark> Marks { get; } = new();
 
-    public override string ToString() => Name;
+    public override string ToString() => $"{Name} · {Warehouse} · {ShiftName}";
 }
