@@ -10,12 +10,14 @@ public partial class MainWindow : Window
     private readonly List<Employee> _employees = new();
     private DateOnly _selectedMonth;
     private double _globalShiftHours = 8;
+    private static readonly DayOfWeek CalendarFirstDayOfWeek = DayOfWeek.Monday;
 
     public MainWindow()
     {
         InitializeComponent();
         MonthDatePicker.SelectedDate = DateTime.Today;
         _selectedMonth = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1);
+        RenderWeekHeaders();
         RefreshCalendar();
         RecalculateSalary();
     }
@@ -148,20 +150,21 @@ public partial class MainWindow : Window
         var daysInMonth = DateTime.DaysInMonth(year, month);
 
         var firstDay = new DateOnly(year, month, 1);
-        var leadingEmptyDays = ((int)firstDay.DayOfWeek + 6) % 7;
+        var leadingEmptyDays = ((int)firstDay.DayOfWeek - (int)CalendarFirstDayOfWeek + 7) % 7;
+        var totalCells = leadingEmptyDays + daysInMonth;
+        var rowCount = (int)Math.Ceiling(totalCells / 7d);
+        CalendarGrid.Rows = Math.Max(4, rowCount);
 
-        for (var i = 0; i < 42; i++)
+        for (var i = 0; i < CalendarGrid.Rows * 7; i++)
         {
             if (i < leadingEmptyDays || i >= leadingEmptyDays + daysInMonth)
             {
                 CalendarGrid.Children.Add(new Border
                 {
                     Margin = new Thickness(4),
-                    CornerRadius = new CornerRadius(10),
-                    Background = new SolidColorBrush(Color.FromRgb(8, 15, 32)),
-                    BorderBrush = new SolidColorBrush(Color.FromRgb(30, 41, 59)),
-                    BorderThickness = new Thickness(1),
-                    Opacity = 0.38
+                    Background = Brushes.Transparent,
+                    BorderThickness = new Thickness(0),
+                    IsHitTestVisible = false
                 });
 
                 continue;
@@ -183,6 +186,33 @@ public partial class MainWindow : Window
             button.Click += OnDayClicked;
             ApplyDayVisual(button, date);
             CalendarGrid.Children.Add(button);
+        }
+    }
+
+    private void RenderWeekHeaders()
+    {
+        WeekHeaderGrid.Children.Clear();
+        var culture = new CultureInfo("ru-RU");
+
+        for (var i = 0; i < 7; i++)
+        {
+            var dayOfWeek = (DayOfWeek)(((int)CalendarFirstDayOfWeek + i) % 7);
+            var title = culture.DateTimeFormat.GetShortestDayName(dayOfWeek);
+
+            WeekHeaderGrid.Children.Add(new Border
+            {
+                Margin = new Thickness(4, 0, 4, 0),
+                Padding = new Thickness(6),
+                Background = new SolidColorBrush(Color.FromRgb(11, 18, 32)),
+                CornerRadius = new CornerRadius(8),
+                Child = new TextBlock
+                {
+                    Text = title,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    FontWeight = FontWeights.SemiBold,
+                    Foreground = new SolidColorBrush(Color.FromRgb(148, 163, 184))
+                }
+            });
         }
     }
 

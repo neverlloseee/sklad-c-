@@ -5,8 +5,8 @@
     <Application.Resources>
         <LinearGradientBrush x:Key="AppBgBrush" StartPoint="0,0" EndPoint="1,1">
             <GradientStop Color="#020617" Offset="0"/>
-            <GradientStop Color="#0B1022" Offset="0.55"/>
-            <GradientStop Color="#111827" Offset="1"/>
+            <GradientStop Color="#0A1026" Offset="0.45"/>
+            <GradientStop Color="#111C3D" Offset="1"/>
         </LinearGradientBrush>
 
         <SolidColorBrush x:Key="PanelBgBrush" Color="#0F172A"/>
@@ -33,13 +33,33 @@
 
         <Style TargetType="Button">
             <Setter Property="Margin" Value="4"/>
-            <Setter Property="Padding" Value="12,7"/>
+            <Setter Property="Padding" Value="12,8"/>
             <Setter Property="Background" Value="#2563EB"/>
             <Setter Property="Foreground" Value="#EFF6FF"/>
-            <Setter Property="BorderBrush" Value="#3B82F6"/>
+            <Setter Property="BorderBrush" Value="#60A5FA"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#3B82F6"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#1D4ED8"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style x:Key="CalendarDayButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
