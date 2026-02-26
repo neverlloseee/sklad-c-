@@ -3,15 +3,22 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        <SolidColorBrush x:Key="AppBgBrush" Color="#030712"/>
+        <LinearGradientBrush x:Key="AppBgBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#020617" Offset="0"/>
+            <GradientStop Color="#0B1022" Offset="0.55"/>
+            <GradientStop Color="#111827" Offset="1"/>
+        </LinearGradientBrush>
+
         <SolidColorBrush x:Key="PanelBgBrush" Color="#0F172A"/>
         <SolidColorBrush x:Key="PanelBorderBrush" Color="#334155"/>
+        <SolidColorBrush x:Key="MutedTextBrush" Color="#94A3B8"/>
 
         <Style x:Key="CardPanelStyle" TargetType="Border">
             <Setter Property="Background" Value="{StaticResource PanelBgBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource PanelBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
         </Style>
 
         <Style TargetType="Window">
@@ -27,12 +34,20 @@
         <Style TargetType="Button">
             <Setter Property="Margin" Value="4"/>
             <Setter Property="Padding" Value="12,7"/>
-            <Setter Property="Background" Value="#1D4ED8"/>
+            <Setter Property="Background" Value="#2563EB"/>
             <Setter Property="Foreground" Value="#EFF6FF"/>
-            <Setter Property="BorderBrush" Value="#2563EB"/>
+            <Setter Property="BorderBrush" Value="#3B82F6"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style x:Key="CalendarDayButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="BorderThickness" Value="1"/>
         </Style>
 
         <Style TargetType="TextBox">

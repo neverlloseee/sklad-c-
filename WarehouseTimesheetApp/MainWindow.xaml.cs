@@ -147,46 +147,37 @@ public partial class MainWindow : Window
         var month = _selectedMonth.Month;
         var daysInMonth = DateTime.DaysInMonth(year, month);
 
-        var dayHeaders = new[] { "Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс" };
-        foreach (var dayHeader in dayHeaders)
-        {
-            CalendarGrid.Children.Add(new Border
-            {
-                Margin = new Thickness(4, 0, 4, 6),
-                Padding = new Thickness(6),
-                Background = new SolidColorBrush(Color.FromRgb(15, 23, 42)),
-                BorderBrush = new SolidColorBrush(Color.FromRgb(51, 65, 85)),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(8),
-                Child = new TextBlock
-                {
-                    Text = dayHeader,
-                    FontWeight = FontWeights.SemiBold,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    Foreground = new SolidColorBrush(Color.FromRgb(148, 163, 184))
-                }
-            });
-        }
-
         var firstDay = new DateOnly(year, month, 1);
         var leadingEmptyDays = ((int)firstDay.DayOfWeek + 6) % 7;
-        for (var i = 0; i < leadingEmptyDays; i++)
-        {
-            CalendarGrid.Children.Add(new Border { Margin = new Thickness(4), Opacity = 0.08 });
-        }
 
-        for (var day = 1; day <= daysInMonth; day++)
+        for (var i = 0; i < 42; i++)
         {
+            if (i < leadingEmptyDays || i >= leadingEmptyDays + daysInMonth)
+            {
+                CalendarGrid.Children.Add(new Border
+                {
+                    Margin = new Thickness(4),
+                    CornerRadius = new CornerRadius(10),
+                    Background = new SolidColorBrush(Color.FromRgb(8, 15, 32)),
+                    BorderBrush = new SolidColorBrush(Color.FromRgb(30, 41, 59)),
+                    BorderThickness = new Thickness(1),
+                    Opacity = 0.38
+                });
+
+                continue;
+            }
+
+            var day = i - leadingEmptyDays + 1;
             var date = new DateOnly(year, month, day);
+
             var button = new Button
             {
                 Tag = date,
-                MinHeight = 108,
+                MinHeight = 104,
                 Margin = new Thickness(4),
                 HorizontalContentAlignment = HorizontalAlignment.Left,
                 VerticalContentAlignment = VerticalAlignment.Top,
-                FontSize = 15,
-                FontWeight = FontWeights.SemiBold
+                Style = (Style)FindResource("CalendarDayButtonStyle")
             };
 
             button.Click += OnDayClicked;
