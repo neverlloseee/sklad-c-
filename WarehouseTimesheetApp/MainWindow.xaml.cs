@@ -150,29 +150,26 @@ public partial class MainWindow : Window
         var daysInMonth = DateTime.DaysInMonth(year, month);
 
         var firstDay = new DateOnly(year, month, 1);
-        var leadingEmptyDays = ((int)firstDay.DayOfWeek - (int)CalendarFirstDayOfWeek + 7) % 7;
-        var totalCells = leadingEmptyDays + daysInMonth;
+        var leadingDays = ((int)firstDay.DayOfWeek - (int)CalendarFirstDayOfWeek + 7) % 7;
+
+        var prevMonthDate = firstDay.AddMonths(-1);
+        var prevMonthDays = DateTime.DaysInMonth(prevMonthDate.Year, prevMonthDate.Month);
+
+        var totalCells = leadingDays + daysInMonth;
         var rowCount = (int)Math.Ceiling(totalCells / 7d);
         CalendarGrid.Rows = Math.Max(4, rowCount);
 
-        for (var i = 0; i < CalendarGrid.Rows * 7; i++)
+        var trailingDays = CalendarGrid.Rows * 7 - totalCells;
+
+        for (var i = 0; i < leadingDays; i++)
         {
-            if (i < leadingEmptyDays || i >= leadingEmptyDays + daysInMonth)
-            {
-                CalendarGrid.Children.Add(new Border
-                {
-                    Margin = new Thickness(4),
-                    Background = Brushes.Transparent,
-                    BorderThickness = new Thickness(0),
-                    IsHitTestVisible = false
-                });
+            var dayNumber = prevMonthDays - leadingDays + i + 1;
+            CalendarGrid.Children.Add(CreateAdjacentMonthCell(dayNumber));
+        }
 
-                continue;
-            }
-
-            var day = i - leadingEmptyDays + 1;
+        for (var day = 1; day <= daysInMonth; day++)
+        {
             var date = new DateOnly(year, month, day);
-
             var button = new Button
             {
                 Tag = date,
@@ -187,6 +184,34 @@ public partial class MainWindow : Window
             ApplyDayVisual(button, date);
             CalendarGrid.Children.Add(button);
         }
+
+        for (var day = 1; day <= trailingDays; day++)
+        {
+            CalendarGrid.Children.Add(CreateAdjacentMonthCell(day));
+        }
+    }
+
+    private static Border CreateAdjacentMonthCell(int dayNumber)
+    {
+        return new Border
+        {
+            Margin = new Thickness(4),
+            Padding = new Thickness(10),
+            CornerRadius = new CornerRadius(10),
+            Background = new SolidColorBrush(Color.FromRgb(12, 20, 38)),
+            BorderBrush = new SolidColorBrush(Color.FromRgb(30, 41, 59)),
+            BorderThickness = new Thickness(1),
+            Opacity = 0.45,
+            IsHitTestVisible = false,
+            Child = new TextBlock
+            {
+                Text = dayNumber.ToString(CultureInfo.InvariantCulture),
+                Foreground = new SolidColorBrush(Color.FromRgb(100, 116, 139)),
+                FontWeight = FontWeights.SemiBold,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Top
+            }
+        };
     }
 
     private void RenderWeekHeaders()
@@ -197,7 +222,7 @@ public partial class MainWindow : Window
         for (var i = 0; i < 7; i++)
         {
             var dayOfWeek = (DayOfWeek)(((int)CalendarFirstDayOfWeek + i) % 7);
-            var title = culture.DateTimeFormat.GetShortestDayName(dayOfWeek);
+            var title = culture.DateTimeFormat.GetAbbreviatedDayName(dayOfWeek);
 
             WeekHeaderGrid.Children.Add(new Border
             {
